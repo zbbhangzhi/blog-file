@@ -1,0 +1,13 @@
+基于AQS:
+CyclicBarrier：已进入屏障的线程，等待执行目标命令：使用可重入锁ReentrantLock（非公平）锁住已进入屏障的线程，不准线程做其他操作？？？还是不准其他线程操作这个线程？？？，线程自旋等待直到发生异常或者最后一个线程进入屏障等待时，唤醒全部等待线程
+ReadWriteLock：readLock共享模式，writeLock独占模式；保证读写互斥 写写互斥 读读不互斥
+ReentrantLock：实例化时自定义占有资源模式共享/独占
+CountDownLatch：释放共享资源达到计数目的
+CopyOnWriteArrayList 的更新等操作都是先用可重入锁ReentrantLock锁住，然后复制原数组成为新数组，将新元素更新进新数组，再用新数组替代原数组，解锁（缺点：占用内存，只能保证最终一致性不能实时一致性；优点：解决list并发问题）
+
+CAS
+AtomicInteger等原子性操作都是compareAndSet都是基于Unsafe操控底层
+
+Condition用到：
+ThreadPoolExecutor
+CountDownLatch：结束等待执行命令
