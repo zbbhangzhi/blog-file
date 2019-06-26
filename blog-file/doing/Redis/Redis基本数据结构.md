@@ -7,14 +7,16 @@ Redis的字符串是动态字符串可修改，结构类似于ArrayList预先分
 - 操作：
   - （单个增加）set key value 或 （单个获取）get key value 
   - （批量增加）mset key1 value1 key2 value2....或（单个获取） mget key1 key2...
-- 计数：value为整数，可进行自增操作，最大值为signed long
+- 计数：value为整数，可进行自增incr操作，最大值为signed long
 - 字符串内部结构实现 todo 32节
 
 #### list列表
 
 Redis的list是链表结构，类似于LinkedList，所以其插入和删除的速度很快，时间复杂度为o(1)，但查询的时间复杂度为o(n)，当list中最后一个元素被删除，整个数据结构删除，内存回收。
 
-但实际上列表在元素较少时会使用一块连续的内存存储，这是结构时ziplist压缩列表，当元素较多时结构改为快速列表quicklist，即ziplist+linkedlist实现快速插入/删除和内存空间占有小，减少碎片空间和前后指针空间
+但实际上列表在元素较少时会使用一块连续的内存存储，这时结构是ziplist压缩列表
+
+当元素较多时结构改为快速列表quicklist，即ziplist+linkedlist实现快速插入/删除，因此减少了碎片空间和前后指针空间
 
 - 操作：
   - 队列（右进左出）：(添加)rpush keyList value1 value2 value3 或 (长度)llen keyList 或 (弹出)lpop keyList
@@ -22,7 +24,6 @@ Redis的list是链表结构，类似于LinkedList，所以其插入和删除的�
   - lindex：获取某索引位置的值，需要遍历列表
   - lrange：获取所有元素
   - lretain：获取start_index到end_index之间的值，其他值被清除，如lretain keyList 1 0为真~清空列表
-  - 
 - 异步队列：将任务结构序列化为字符串存入Redis列表
 
 #### hash字典
@@ -61,7 +62,7 @@ Redis的有序列表zset，类似SortedSet和HashMap的结合体。它整体是�
   - 获取指定value的score：zscore keyZset value1
   - 根据score分区列出：zrangebyscore keyZset startScore endScore
   - 删除value1：zrem keyZset value1
-- 跳跃列表：实现内部score排序，保证快速插入，但链表在二分查找时不支持，只有数组支持
+- 跳跃列表：实现内部score排序，保证随机的快速插入和删除；因为链表在二分查找时不支持，只有数组支持，所以不使用二分查找定位。
 
 #### 特性
 
@@ -73,5 +74,5 @@ Redis的有序列表zset，类似SortedSet和HashMap的结合体。它整体是�
 ##### 针对所有结构
 
 - 几秒后key值失效：setnx key seconds value 或 expire key seconds
-- 过期是整个结构过期而不是内部单个元素
+- 过期是整个对象结构过期而不是内部单个元素
 - 如果某字符串已设置过期时间，再次调用set方法修改这个元素的值时，过期时间会消失
