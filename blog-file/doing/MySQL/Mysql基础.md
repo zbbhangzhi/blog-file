@@ -6,7 +6,7 @@
 
 - mysqld（代表MySQL服务程序）
 - mysqld_safe（启动脚本，启动mysqld时还同时启动了另外一个监控进程，是守护进程，如果服务进程挂了，监控进程会帮助重启，可以用mysqladmin强制关闭）
-- mysql.sever（链接文件内含启动脚本，通过命令mysql.sever start/stop调用mysqld_safe）
+- mysql.sever（链接文件内含启动脚本，通过命令mysql.sever start/stop调用mysqld_safe，其他启动参数设置通过读取配置文件）
 - mysqld_multi（可对多个服务进程启动/停止/监控）
 
 

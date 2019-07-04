@@ -21,57 +21,61 @@ TODO 这里有个问题，网上说hash可以避免cas问题，怎么体现的
 - 问题一：如果在获得锁后发生事故导致del指令没能执行，那么会引起死锁问题，锁不能被释放，下一个线程永远拿不到
   - 解决一：在获取锁的同时设置一个过期时间expire lockKey seconds，保证发生异常不能主动释放锁也能自动释放
 - 问题二：虽然设置了过期时间保证自动释放锁，但如果在exprie前服务进程挂了，也是会引起死锁的，因为expire和setnx指令不是原子指令不能一起执行 （TODO 不使用Redis事务的原因）
-  - 解决二：redis2.8添加set指令的扩展参数使expire和setnx指令可以一起执行，setnx+expire的原子指令（set lockKey true ex seconds nx）
+  - 解决二：redis2.8添加set指令的扩展参数使expire和setnx指令可以一起执行，setnx+expire的原子指令（`set lockKey true ex seconds nx`）
 - 问题三：加锁后执行时间过长超过锁的超时限制，导致当前线程还在执行任务时释放锁，下一个线程获取锁，临界区代码执行异常
   - 解决三：lua脚本
   - 解决四：设置随机超时时间，要释放锁的线程需要和这个随机数作比较确定是当前持有线程释放的，但比较和释放是两个指令不是原子操作有风险
 
 3. ##### 延时队列
 
-使用list列表作为异步消息队列，支持多生产者多消费者并发进出消息
+方法一：使用list列表作为异步消息队列，支持多生产者多消费者并发进出消息
 
 - 操作：获取：lpop/rpop，放入：lpush/rpush
 - 问题一：队列如果空了，消费者会一直循环pop，直到有数据返回；但这样的空轮询会导致客户端CPU高消耗，redis的慢查询增多，QPS升高
   - 解决一：线程sleep，但会导致消息延迟；因为集群下你睡一下我睡一下，而且睡眠时间是定长的，那整个延迟时间会被拉长
   - 解决二：阻塞读blocking，blpop/brpop代替lpop/rpop，阻塞读在队列没有数据时会进入休眠，有数据就醒来；但是如果长时间阻塞还是和解决一的问题一样，同时引发redis客户端连接闲置，服务器检测到闲置连接主动断开，blpop/brpop抛异常
   - 解决三：针对阻塞读带来的抛异常，用户捕捉异常时自定义重试时间
-- 问题二：没有ack等安全机制保证消息可靠性
 
-使用zset有序列表作为延时队列的实现，消息序列化为字符串作为zset的value，score是消息到期处理时间，采用多线程轮询方式从zset种获取消息任务
+方法二：使用zset有序列表作为延时队列的实现，消息序列化为字符串作为zset的value，score是消息到期处理时间，采用多线程轮询方式从zset种获取消息任务，这样某个线程挂了也能继续工作
 
 - 操作
-  - zrem：同一个任务被多线程取到后，使用zrem进行争抢确定主人，并从队列中移除
   - zrangebyscore：获取消息
+  - zrem：同一个任务被多线程取到后，使用zrem进行移除，谁移成功就是主人
   - 问题：zrem确定多线程中的一个主人，相当于其他线程白白消耗资源
-  - 解决：lua scripting优化，保证zrem和zrangebyscore一起作
+  - 解决：lua scripting优化，保证zrem和zrangebyscore一起
+- 问题二：没有ack等安全机制保证消息可靠性
 
 4. ##### 统计
 
 - 用户签到记录
 
-使用位图数据结构存储某用户一年内每天签到的bool值，365天即365位46个字节；位图的内容其实是字符串即byte数组，redis的位数组是自动扩展的，比如设置的索引位置超出长度，位数组将自动进行零扩充。
+使用位图数据结构存储某用户一年内每天签到的bool值，365天即365位46个字节；位图的内容其实是字符串即byte数组，redis的位数组是自动扩展的，比如设置的索引位置超出长度，位数组将自动进行零扩充。（下面的索引都是以字节为单位也就是8的倍数，所以需要将字符串拿到内存内计算）
 
 ​		1).  整个位图内容设置/获取：get/set
 
-​		2). 单个位操作：设置位图某位置内容setbit bitName bitIndex bitValue(0/1)；获取某位置内容getbit bitName bitIndex；
+​		2). 单个位操作：设置位图某位置内容`setbit bitName bitIndex bitValue(0/1)`；获取某位置内容getbit bitName bitIndex；
 
-​		3). 位图统计：bitcount统计位图指定范围start-end为1的个数bitcount bitName startIndex endIndex
+​		3). 位图统计：bitcount统计位图指定范围start-end为1的个数`bitcount bitName startIndex endIndex`
 
-​		4). 位图查找：bitpos查找指定范围出现的第一个0或1bitpos bitName 1/0 startIndex endIndex
+​		4). 位图查找：bitpos查找指定范围出现的第一个0或1`bitpos bitName 1/0 startIndex endIndex`
 
-​		5). 多个位操作（redis 2.3v）：bitfiled对指定位片段读写，最多连续64个连续位，超过64个位可以一次执行多指令；set/field/get指令可混合执行
+​		5). 多个位操作
 
-​			设置 bitfield bitName set 无符号数 startIndex 替换符ASCII
+​	  管道
 
-​			获取某位开始几个符号数 bitfiled bitName get 符号数 startIndex，符号数指位数组中第一个位是符号位剩下是值，有符号数最多取64位，无符号数最多取63位；
+  	(redis 3.2v)bitfiled对指定位片段读写，最多连续64个连续位，超过64个位可以一次执行多指令；set/field/get指令可混合执行
 
-​			对指定范围的位进行自增操作bitfield bitName incrby 无符号数 startIndex 要加的数；提供溢出策略子指令overflow：饱和阶段sat（超过范围就停留最大/小值），失败不执行fail，默认折返wrap
+​			设置`< bitfield bitName set 无符号数 startIndex 替换符的ASCII码>`
+
+​			获取某位开始几个符号数`< bitfiled bitName get 符号数 startIndex>`，符号数指位数组中第一个位是符号位剩下是值，有符号数最多取64位，有符号数是负数，无符号数最多取63位；
+
+​			对指定范围的位进行自增操作`bitfield bitName incrby 无符号数 startIndex` 要加的数；提供溢出策略子指令overflow：饱和截断sat（超过范围就停留最大/小值），失败不执行fail，默认折返wrap
 
 - PV：每个网页当天所有点击量，为每个网页单独维护一个redis计数器，计数器名+日期为key，数值value incrby自增
-- UV：每个网页用户不重复点击量
+- UV：每个网页用户不重复点击量HyperLogLog
   - 解决一：量少的时候，set集合sadd存储用户唯一id，scard获取集合大小即为某页面的UV数
   - 解决二：一的场景适用于量少，如果量多会非常浪费空间。HyperLogLog是一种不精确的解决方案，误差为0.81%，计数较少时，其存储空间采用稀疏矩阵存储，当占用超过阈值时，一次性转为稠密矩阵占用12kb空间。
-    - 操作：增加计数pfadd 集合名 用户0id....，获取计数pfcount 集合名，多个计数累加pfmerge
+    - 操作：增加计数`pfadd 集合名 用户0id....`，获取计数`pfcount 集合名`，多个计数累加`pfmerge`
     - 实现：TODO 给出一个随机数，获取最低位连续零的个数
 
 5. ##### 命中，去重
@@ -81,9 +85,9 @@ TODO 这里有个问题，网上说hash可以避免cas问题，怎么体现的
 可通过修改误判率提高精确度，但缺点是
 
 - 操作
-  - 添加元素bf.add bfKey bfValue1，批量添加bf.madd bfKey bfValue1 bfValue2...
-  - 查询存在与否bf.exits，批量查询存在与否bf.mexits bfKey bfValue1 bfValue2...
-  - 自定义参数bf.reserve bfKey error_rate（错误率越低需要的空间越大） initialSize（预计要放入的元素数量），不设置默认错误率为0.01，默认size为100
+  - 添加元素`bf.add bfKey bfValue1`，批量添加`bf.madd bfKey bfValue1 bfValue2...`
+  - 查询存在与否`bf.exits`，批量查询存在与否`bf.mexits bfKey bfValue1 bfValue2...`
+  - 自定义参数`bf.reserve bfKey error_rate（错误率越低需要的空间越大） initialSize（预计要放入的元素数量）`，不设置默认错误率为0.01，默认size为100
 - 使用：java客户端lettuce支持指令扩展，jedis-2.x没有提供
 - 原理：
   - add：布隆过滤数据结构由位数组+hash函数组成，元素存入时，由多种hash函数取hash值（能使hash值对数组长度取模运算映射到的位置比较平均），多个hash值对数组长度取模运算映射到的多个位置置为1
@@ -96,22 +100,25 @@ hash函数的最佳数量k = 0.7 * （1/预计元素的数量）
 
 6. ##### 限流
 
+简单限流
+
 用于控制用户行为，控制服务器访问压力，使用zset数据结构实现；一个用户的一种行为作为一个zset记录，key作为用户行为，score作为时间窗口，value是唯一的时间戳其实和score是一样的 但没有意义
 
 - 操作：记录所有用户行为，其他记录删除，只在时间窗口期内比较数量
-  - 记录行为：zadd 用户行为key 时间窗口 当前时间戳
-  - 移除时间窗口前的数据：zremrangeByScore 用户行为key 正序 时间score（score-period：时间窗口前的时间）
-  - 获取剩下的时间窗口内的行为数量：zcard 用户行为key
-  - 设置过期时间，避免后续不再访问的用户（冷用户）占内存，过期时间大于等于窗口期 expire key period+1
+  - 记录行为：`zadd 用户行为key 时间窗口 当前时间戳`
+  - 移除时间窗口前的数据：`zremrangeByScore 用户行为key 正序 时间score`（score-period：时间窗口前的时间）
+  - 获取剩下的时间窗口内的行为数量：`zcard 用户行为key`
+  - 设置过期时间，避免后续不再访问的用户（冷用户）占内存，过期时间大于等于窗口期 `expire key period+1`
   - 比较用户行为数量是否超标
+- 问题：不适用用户行为偏大的场景；且连续对同一用户行为key的操作可以使用pipeline提升存取效率。
 
 漏斗限流
 
 在一定容量的漏斗中，允许漏斗中的水以一定的速度流出，水流出漏斗就有空间灌水，没有就阻塞等待足够的空间。redis的数据结构hash可以存储这个过程的数据，但是取出，计算，更新这三个步骤不是原子性操作，会有性能或安全问题。Redis4.0提供了限流模块Redis-Cell，提供了原子的限流指令
 
 - 操作
-  - cl.throttle 限流对象key 漏斗容量 灌水次数 固定时间内（灌水次数/固定时间内：构成流水速率）
-  - 执行返回1是否允许，2漏斗剩余容量，3剩余容量，4被拒绝后的重试时间，5漏斗完全空出的时间；如果被拒绝了可以根据返回重试时间进行重试
+  - `cl.throttle 限流对象key 漏斗容量 灌水次数 固定时间内（灌水次数/固定时间内：构成流水速率）`
+  - 执行返回：1是否允许，2漏斗剩余容量，3剩余容量，4被拒绝后的重试时间，5漏斗完全空出的时间；如果被拒绝了可以根据返回重试时间进行重试
 
 7. ##### 计算附近的人
 
@@ -120,25 +127,25 @@ hash函数的最佳数量k = 0.7 * （1/预计元素的数量）
 Redis使用GeoHash算法，先将地球当作一个二维平面并划分为一系列方格，方格越小坐标越精确，将用户经纬度通过某一算法整数化为一个整数（这个过程是有损的，GeoHash算法会继续对这个整数做一次base32编码变成一个字符串），这样距离近的人整数大小也是相近的。Redis使用52位的整数进行编码经纬度并放入zset中，value是元素的key即用户，score是GeoHash的52位整数即坐标，通过排序score就可以实现附近的人。
 
 - 操作
-  - 增加：geoadd 集合key 经度1 纬度1 元素value1或批量增加geoadd 集合key  经度1 纬度1 元素value1 经度2 纬度2 元素value2
-  - 计算元素之间的距离：geodist 集合key 元素value1 元素value2 距离单位（km/m/ml/ft）
-  - 获取元素位置，返回经纬度：geopops 集合key 元素value1
-  - 查找元素附近的其他元素：georadiusbymember 集合key 元素value1 距离 单位 count 3（元素数量） asc/desc（正逆序）
-  - 查找元素附近的其他元素并显示距离：georadiusbymember 集合key 元素value1 距离 单位  withcoord withdist withhash count 3（元素数量） asc/desc（正逆序）
-  - 根据经纬度查询附近的元素：georadius  集合key 经度 纬度  距离 单位 withdist count 3（元素数量） asc/desc（正逆序）
-- 问题：如果在数量十分大的场景zset的容量不应超过1M，不然在redis集群中节点迁移时会出现卡顿的现象，建议geo数据单独redis实例部署
+  - 增加：`geoadd 集合key 经度1 纬度1 元素value1`或批量增加`geoadd 集合key  经度1 纬度1 元素value1 经度2 纬度2 元素value2`
+  - 计算元素之间的距离：`geodist 集合key 元素value1 元素value2 距离单位`（km/m/ml/ft）
+  - 获取元素位置，返回经纬度：`geopops 集合key 元素value1`
+  - 查找元素附近的其他元素：`georadiusbymember 集合key 元素value1 距离 单位 count 3（元素数量） asc/desc（正逆序）`
+  - 查找元素附近的其他元素并显示距离：`georadiusbymember 集合key 元素value1 距离 单位  withcoord withdist withhash count 3（元素数量） asc/desc（正逆序）`
+  - 根据经纬度查询附近的元素：`georadius  集合key 经度 纬度  距离 单位 withdist count 3（元素数量） asc/desc（正逆序）`
+- 问题：如果在数量十分大的场景zset的容量不应超过1M，不然在redis集群中节点迁移时会出现卡顿的现象，建议geo数据单独redis实例部署，且按地域划分
 
 8. ##### 找出特点的key列表
 
-- 方式一：keys *或keys prefix**suffix
+- 方式一：`keys *`或`keys prefix**suffix`
 
   - 缺点：没有限制limit，一次性列出所有符合的key，而且复杂度是O(n)，如果数量超大会导致Redis服务卡顿，因为Redis是单线程，所以这个指令不执行完其他读写指令都要延后或超时
 
 - 方式二：
 
   - 使用：
-    - 遍历所有的key：scan 游标值 key的正则模式 count 数量（遍历的limit hint）
-    - 对指定容器集合遍历：zscan/hscan/sscan，因为这些容器结构的key存储底层都是字典
+    - (2.8v)遍历所有的key：`scan 游标值 key的正则模式 count 数量`（遍历的limit hint）
+    - 对指定容器集合遍历：`zscan/hscan/sscan`，因为这些容器结构的key存储底层都是字典
     - 定位大小较大的key：redis-cli指令提供：redis-cli -h 127.0.0.1 -p 7001 –-bigkeys（-i 0.1表示每隔100条休眠0.1s，减少ops大幅提升，但相应会延迟扫描时间），要尽量避免大key的产生，不然新增/删除都会对Redis带来卡顿
   - 特点：
     - 时间复杂度为O(n)，但通过游标分布进行，不阻塞线程
@@ -147,7 +154,8 @@ Redis使用GeoHash算法，先将地球当作一个二维平面并划分为一�
     - 会返回给客户端游标整数，如果游标不为0但是返回空列表，不代表返回的是空数据，可能遍历还未结束，只是暂时没找到匹配的而已
     - 返回的结果集可能有重复结果，需要客户端自主去重
 
-  Redis key存储字典结构类似于HashMap，由一维数组和列表组成。数组空间为2^n，扩容一次数组大小空间加倍n++。
+  ****Redis key存储字典结构类似于HashMap，由一维数组和列表组成。数组空间为2^n，扩容一次数组大小空间加倍n++。
+  
   - scan遍历过程：scan采用高位进位加法来遍历一维数组，根据指定游标值开始从对应的数组索引（或称槽slot）开始从左边加进位往右边移，与普通加法相反，经过limit数量的槽。这是为了保证字典扩容或缩容时避免槽位的遍历重复/遗漏
   - 字典扩容：扩容后槽位为高进位加1，如字典长度由16位扩容到32位，二进制槽位xxxx中的元素将被rehas到0xxxx和1xxxx（xxxx+16）中；8位扩容到16位就加8
   - 渐进式rehash：不同于Java中一次性移动所有旧数组下挂连的元素到新数组，但这样线程会出现卡顿现象。而渐进式rehash会保留新旧数组，渐渐将旧数组迁移到新数组，如果这时有其他操作访问这个数组，需要同时遍历新旧数组。
