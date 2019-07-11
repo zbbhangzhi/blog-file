@@ -52,75 +52,68 @@ InnoDB会自动为我们创建聚簇索引，且聚簇索引就是数据的存�
 - 时间
   - 增删改产生页分裂
   - 回表：在从二级索引树中找到结果时需要根据结果给出的主键从聚簇索引树中找到完整的用户记录
-    - 问题：用到两个索引：二级索引，聚簇索引；访问二级索引使用顺序I/O，访问聚簇索（全表扫描）引使用随机I/O
-    - 解决：覆盖索引：在查询列中仅包含索引列，拒绝回表
+    - 问题：用到两个索引（二级索引，聚簇索引），如果回表代价也挺大的，就会考虑全表扫描
+    
+      因为索引排序是顺序的，所以访问二级索引如果是范围查找使用**顺序I/O**，如果确定值匹配二分法直接找到；访问聚簇索（全表扫描）引使用**随机I/O**，因为根据二级索引查询到的主键不一定是连续的
+    
+    - 解决：1.覆盖索引：在查询列中仅包含索引列，拒绝回表；2.limit语句减少查询记录
 
 #### 使用
 
-假设一个表user有四个字段id，name，phone，birthday，address；现有id作为主键则有对应的聚簇索引，并为name，phone，birthday作联合索引idx_name_phone_birthday；
+假设一个表user有四个字段`id，name，phone，birthday，address`；现有id作为主键则有对应的聚簇索引，并为name，phone，birthday作联合索引`idx_name_phone_birthday`；
 
 - 全值匹配：
 
-  - select * from user where name ='aa' and birthday ='1990-10-19' and phone ='123'
+  - `select * from user where name ='aa' and birthday ='1990-10-19' and phone ='123'`
 
   查找过程为：先定位B+中name所在位置，name相同的列中按照phone的大小进行排序，如果查到name和phone的大小相同，则在该列下按birthday大小排序；where后的条件可不按顺序排列，因为mysql在查询前会对SQL进行优化
 
 - 匹配左边的列：
 
-  - select * from user where name ='aa' and birthday ='1990-10-19'（用到索引）
-  - select * from user where  birthday ='1990-10-19'（用不到索引）；因为索引树查找是先从name开始，是不能跳过name的
+  - `select * from user where name ='aa' and birthday ='1990-10-19'`（用到索引，只查找符合name列的记录，然后从回表中筛选birthday）
+  - `select * from user where  birthday ='1990-10-19'`（用不到索引）；因为索引树查找是先从name开始，是不能跳过name的
 
 - 匹配列前缀：
 
-  - select * from user where name  like 'aa%' （用到索引）
-  - select * from user where name  like '%aa' （用不到索引）因为索引大小的排序是按照字符集对应的排序规则，这样无法按照前缀大小排序只能全表扫描
+  - `select * from user where name  like 'aa%'` （用到索引）
+  - `select * from user where name  like '%aa'` （用不到索引）因为索引大小的排序是按照字符集对应的排序规则，这样无法按照前缀大小排序只能全表扫描
 
 - 匹配范围值：
 
-  - SELECT * FROM user WHERE name > 'Asa' AND name < 'Barlow' AND birthday > '1980-01-01';只有在对索引的最左边的那个列进行范围查找的时候才能用到B+树，即birthday的查找是在name使用索引查找的结果记录中作为过滤条件而不是在结果中按照birthday列进行排序
+  - `SELECT * FROM user WHERE name > 'Asa' AND name < 'Barlow' AND birthday > '1980-01-01';`如果联合索引的列都参与范围查找，只有**最左边**的那个列才能用到B+树，即birthday的查找是在name使用索引查找的结果记录中作为过滤条件而不是在结果中按照birthday列进行排序，因为name列查找出来是多个结果，而不是同一结果
 
 - 精确匹配某一列并范围匹配另外一列：
 
-  - SELECT * FROM user WHERE name = 'Ashburn' AND phone > '15100000000' AND birthday > '1980-01-01' AND birthday < '2000-12-31' ;（B+树中name值相同的列下，继续按照phone的大小排序，但是因为phone范围查找下的值可能phone不相同（不好排序），所以不能用B+树索引了，只能遍历phone结果查询）；
-  - SELECT * FROM user WHERE name = 'Ashburn' AND phone = '123' AND birthday > '1980-01-01';（用到索引）
+  - `SELECT * FROM user WHERE name = 'Ashburn' AND phone > '15100000000' AND birthday > '1980-01-01' AND birthday < '2000-12-31' ;`（用到索引，B+树中name值相同的列下，继续按照phone的大小排序，但是因为phone范围查找下的值可能phone不相同（不好排序），所以不能用B+树索引了，只能遍历phone结果查询）；
+  - `SELECT * FROM user WHERE name = 'Ashburn' AND phone = '123' AND birthday > '1980-01-01';`（用到索引）
 
-- 用于排序（没有索引排序默认使用文件排序filesort；order by不指定默认使用升序）
+- 用于排序（没有索引排序默认使用文件排序filesort，磁盘存放排序中间结果，排序完成返回给客户端；order by不指定默认使用升序）
 
-  - 顺序匹配：SELECT * FROM user  ORDER BY name,  phone,birthday LIMIT 10;（用到索引）
-  - 顺序匹配：SELECT * FROM user  WHERE name = 'A' ORDER BY phone,birthday LIMIT 10;（用到索引）
-  - 匹配左边：SELECT * FROM user  ORDER BY name,  phone（用到索引）
-  - 升降序混用：SELECT * FROM user  ORDER BY name,  phone desc（用到文件排序）
-  - where子句中出现非索引字段：SELECT * FROM user where adrress ='hdeuh' ORDER BY name,  phone（用不到索引）一般先提取address字段再排序，但address没有索引
-  - 排序出现非索引字段：SELECT * FROM user  ORDER BY name,  address（用不到索引）
-  - 排序列使用复杂表达式：SELECT * FROM user  ORDER BY name,  count(phone)（用不到索引列）保证索引列出现是单独出现而不是修饰过
+  - 顺序匹配（即order by后面的顺序与索引列一致）：`SELECT * FROM user  ORDER BY name,  phone,birthday LIMIT 10;`（用到索引，最后回表提取剩余列）
+  - 顺序匹配，最左边是常量查询：`SELECT * FROM user  WHERE name = 'A' ORDER BY phone,birthday LIMIT 10;`（用到索引）
+  - 匹配左边：`SELECT * FROM user  ORDER BY name,  phone limit 10;SELECT * FROM user  ORDER BY name desc,  phone desc limit 10;`（用到索引）
+  - 升降序混用：`SELECT * FROM user  ORDER BY name,  phone desc`（name升序，phone降序，用到文件排序）
+  - where子句中出现非索引字段：`SELECT * FROM user where adrress ='hdeuh' ORDER BY name,  phone`（用不到索引）一般先提取address字段再排序，但address没有索引
+  - 排序出现非索引字段：`SELECT * FROM user  ORDER BY name,  address`（用不到索引）
+  - 排序列使用复杂表达式：`SELECT * FROM user  ORDER BY name,  count(phone)`（用不到索引列）保证索引列出现是单独出现而不是修饰过
 
-- 用于分组（没有分组默认内存内实现）
+- 用于分组（没有索引默认内存内实现）
 
-  - 顺序匹配/左边匹配：SELECT name, birthday, phone, COUNT(*) FROM user GROUP BY name, phone, birthday（用到索引）
+  - 顺序匹配/左边匹配：`SELECT name, birthday, phone, COUNT(*) FROM user GROUP BY name, phone, birthday`（用到索引，需要和索引列顺序一致，也可以只匹配最左边列）
 
 #### 索引选择
 
-- 搜索/排序/分组列
+- 参与搜索/排序/分组的列
 - 基数大的列：基数（一个列中不重复的数据）大，说明重复数据少范精准度高
 - 列类型小：比如能使用int就不用bigint，因为数据类型越小，查询时比较速度越快，索引占的空间越小，一个数据页可存放的内容越多，能够放在缓存的数据页越多，减少i/o带来的性能损耗，加快读写效率
-- 索引字符串值的前缀：如果索引列很长，可以在建立索引时只保留记录的的前10个字符的编码KEY idx_name_birthday_phone (name(10), birthday, phone)；但是这样不支持在索引中排序
+- 索引字符串值的前缀：如果索引列很长，可以在建立索引时只保留记录的的前10个字符的编码KEY idx_name_birthday_phone (name(10), birthday, phone)；但是这样不支持在索引中排序，只能文件排序，所以如果有orderby的需求就不要考虑
 - 大小依次增长的列：比如主键
 - 冗余索引：不需要重复为一个列建立索引，这样只会增加维护成本
 - 索引列在表达式中单独存在，而不是以某个表达式
 
-######  todo 
-
-索引注意事项
-
-
-
-
-
-
-
 #### MyISAM的索引方案
 
-MyISAM的索引也是树形结构，但将数据和索引分开，不像InnoDB索引即数据；
+（不细讲）MyISAM的索引也是树形结构，但将数据和索引分开，不像InnoDB索引即数据；
 
 MyISAM将表记录按插入顺序单独存储在一个文件中即数据文件，通过行号快速访问记录。
 
