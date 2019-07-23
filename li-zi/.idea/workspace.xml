@@ -2,20 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c6154b34-c966-4e65-b3c9-25effe3181ad" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/HyperLogLog.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/MurmurHash.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/RegisterSet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/hyperloglog.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../blog-file/doing/Effective Java.md" beforeDir="false" afterPath="$PROJECT_DIR$/../blog-file/doing/Effective Java.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../blog-file/doing/MySQL/InnoDB记录存储结构.md" beforeDir="false" afterPath="$PROJECT_DIR$/../blog-file/doing/MySQL/InnoDB记录存储结构.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../blog-file/doing/MySQL/Mysql基础.md" beforeDir="false" afterPath="$PROJECT_DIR$/../blog-file/doing/MySQL/Mysql基础.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../blog-file/doing/MySQL/字符集和比较规则.md" beforeDir="false" afterPath="$PROJECT_DIR$/../blog-file/doing/MySQL/字符集和比较规则.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/A.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/concurrent/BigFileMultiDownload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/concurrent/CalculateLogInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/LinkedHashMapLRU.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../blog-file/doing/MySQL/多表连接的原理.md" beforeDir="false" afterPath="$PROJECT_DIR$/../blog-file/doing/MySQL/多表连接的原理.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../blog-file/doing/Redis/Redis使用案例.md" beforeDir="false" afterPath="$PROJECT_DIR$/../blog-file/doing/Redis/Redis使用案例.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/HyperLogLog.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../睡个好觉.xls" beforeDir="false" afterPath="$PROJECT_DIR$/../睡个好觉.xls" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -28,11 +21,38 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/BloomFilter.java">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/A.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="132">
-              <caret line="6" column="26" lean-forward="true" selection-start-line="6" selection-start-column="26" selection-end-line="6" selection-end-column="26" />
+              <caret line="6" column="14" selection-start-line="6" selection-start-column="14" selection-end-line="6" selection-end-column="14" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/concurrent/BigFileMultiDownload.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="176">
+              <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/concurrent/CalculateLogInfo.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="132">
+              <caret line="6" column="31" selection-start-line="6" selection-start-column="31" selection-end-line="6" selection-end-column="31" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/LinkedHashMapLRU.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="66">
+              <caret line="3" column="17" selection-start-line="3" selection-start-column="17" selection-end-line="3" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -58,6 +78,8 @@
         <option value="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/MurmurHash.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/HyperLogLog.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/hyperloglog.txt" />
+        <option value="$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/concurrent/BigFileMultiDownload.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/LinkedHashMapLRU.java" />
       </list>
     </option>
   </component>
@@ -74,7 +96,7 @@
       </MavenImportingSettings>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-1928" />
     <option name="y" value="-8" />
     <option name="width" value="1936" />
@@ -86,8 +108,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -128,18 +148,39 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="lizi" type="462c0819:PsiDirectoryNode" />
+              <item name="jdk" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="li-zi" type="b2602c69:ProjectViewProjectNode" />
+              <item name="li-zi" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="lizi" type="462c0819:PsiDirectoryNode" />
+              <item name="jdk" type="462c0819:PsiDirectoryNode" />
+              <item name="concurrent" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="li-zi" type="b2602c69:ProjectViewProjectNode" />
+              <item name="li-zi" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="lizi" type="462c0819:PsiDirectoryNode" />
               <item name="redis" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1562048982124" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1563518413031" />
     <property name="last_opened_file_path" value="E:/favor/code/guava" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
@@ -191,17 +232,19 @@
       <workItem from="1561968860138" duration="45000" />
       <workItem from="1561968992733" duration="5004000" />
       <workItem from="1562036399865" duration="622000" />
+      <workItem from="1563360253337" duration="1313000" />
+      <workItem from="1563518374024" duration="56000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="6912000" />
+    <option name="totallyTimeSpent" value="8281000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1928" y="-8" width="1936" height="1066" extended-state="7" />
+    <frame x="-1928" y="-8" width="1936" height="1066" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15298508" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15618336" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -221,6 +264,7 @@
       <window_info anchor="bottom" id="Terminal" order="10" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
       <window_info anchor="bottom" id="Messages" order="12" weight="0.32929516" />
+      <window_info anchor="bottom" id="Statistic" order="13" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -326,25 +370,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/HyperLogLog.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1980">
-          <caret line="98" column="9" selection-start-line="98" selection-start-column="9" selection-end-line="98" selection-end-column="9" />
-          <folding>
-            <element signature="e#353#354#0" expanded="true" />
-            <element signature="e#385#386#0" expanded="true" />
-            <element signature="e#537#538#0" expanded="true" />
-            <element signature="e#621#622#0" expanded="true" />
-            <element signature="e#665#666#0" expanded="true" />
-            <element signature="e#736#737#0" expanded="true" />
-            <element signature="e#854#855#0" expanded="true" />
-            <element signature="e#910#911#0" expanded="true" />
-            <element signature="e#3009#3010#0" expanded="true" />
-            <element signature="e#3051#3052#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/MurmurHash.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1100">
@@ -374,10 +399,57 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/hyperloglog/HyperLogLog.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="838">
+          <caret line="98" column="9" selection-start-line="98" selection-start-column="9" selection-end-line="98" selection-end-column="9" />
+          <folding>
+            <element signature="e#353#354#0" expanded="true" />
+            <element signature="e#385#386#0" expanded="true" />
+            <element signature="e#537#538#0" expanded="true" />
+            <element signature="e#621#622#0" expanded="true" />
+            <element signature="e#665#666#0" expanded="true" />
+            <element signature="e#736#737#0" expanded="true" />
+            <element signature="e#854#855#0" expanded="true" />
+            <element signature="e#910#911#0" expanded="true" />
+            <element signature="e#3009#3010#0" expanded="true" />
+            <element signature="e#3051#3052#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/BloomFilter.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="132">
-          <caret line="6" column="26" lean-forward="true" selection-start-line="6" selection-start-column="26" selection-end-line="6" selection-end-column="26" />
+          <caret line="6" column="26" selection-start-line="6" selection-start-column="26" selection-end-line="6" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/A.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="6" column="14" selection-start-line="6" selection-start-column="14" selection-end-line="6" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/concurrent/BigFileMultiDownload.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/jdk/concurrent/CalculateLogInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="6" column="31" selection-start-line="6" selection-start-column="31" selection-end-line="6" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/zbb/lizi/redis/LinkedHashMapLRU.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="66">
+          <caret line="3" column="17" selection-start-line="3" selection-start-column="17" selection-end-line="3" selection-end-column="17" />
         </state>
       </provider>
     </entry>
