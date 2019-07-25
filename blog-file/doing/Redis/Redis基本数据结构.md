@@ -2,13 +2,46 @@
 
 #### String字符串
 
-Redis的字符串是动态字符串可修改，结构类似于ArrayList预先分配内存，当字符串长度小于1M，扩容是加倍现有空间，大于1M，一次扩容1M，字符串长度最大512M
+Redis的字符串是动态字符串可修改，结构类似于ArrayList预先分配内存，当字符串长度小于1M，扩容是加倍现有空间，大于1M，一次扩容1M，字符串长度最大512M，创建时len和capacity一样，不会有多余的空间
 
 - 操作：
-  - （单个增加）set key value 或 （单个获取）get key value 
-  - （批量增加）mset key1 value1 key2 value2....或（单个获取） mget key1 key2...
+  - （单个增加）`set key value` 或 （单个获取）`get key value` 
+  - （批量增加）`mset key1 value1 key2 value2....`或（单个获取） `mget key1 key2...`
+  
 - 计数：value为整数，可进行自增incr操作，最大值为signed long
-- 字符串内部结构实现 todo 32节
+
+- 字符串内部结构实现SDS-Simple Dynamic String（
+
+  ```c
+  //Redis Object对象头结构体 16字节 + 3字节
+  struct RedisObject {
+      int4 type; // 4bits 对象类型
+      int4 encoding; // 4bits 存储形式
+      int24 lru; // 24bits LRU信息
+      int32 refcount; // 4bytes 引用计数，为0时，对象销毁
+      void *ptr; // 8bytes，64-bit system 指针指向对象内容body的具体存储位置
+  } robj;
+  //SDS结构体
+  struct SDS<T> { 
+      T capacity; // 数组容量 （字符串较短时可以使用byte/short表示，减少内存使用）
+      T len; // 数组长度 （同上）
+      byte flags; // 特殊标识位，不理睬它 
+      byte[] content; // 数组内容 
+  }
+  ```
+
+  - append操作
+
+    redis的字符串是支持append操作的，如果当前没有可用空间，就会重新分配数组，并将旧内容复制过来，再进行append，重新设置追加后的长度值，最后再为字符串以`\0`结尾（很少有append操作）
+
+  - 存储方式
+
+    - emstr：长度较短时，使用malloc方法一次性分配RedisObject对象头和SDS对象连续存放
+    - row：长度超过44时，使用malloc方法两次分配RedisObject对象头和SDS对象，两个对象头在内存上不连续
+
+    > embstr只能是44是因为，为了容纳一个完整的emstr对象，jemalloc（内存分配器）最少分配32字节空间，再大一点是64字节，当内存是64字节时，这个字符串的最大长度就是64-19=45字节，而SDS结构体中的content为了便于直接使用glibc的字符串处理函数即方便调试打印而以字节\0结尾的字符串，即45-1=44字节
+
+- - 
 
 #### list列表
 
