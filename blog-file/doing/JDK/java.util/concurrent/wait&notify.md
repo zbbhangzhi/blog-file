@@ -1,0 +1,116 @@
+## wait/notify
+
+等待线程和通知线程是同步在同一对象之上的两种线程
+
+### 使用过程
+
+```java
+//等待
+synchronized(object){
+    //保护条件不成立时，当前线程暂停，进入等待集
+	while(!保护条件){
+		object.wait();
+	}
+	doSomething();
+}
+//唤醒
+synchronized(object){
+    //更新等待线程保护条件涉及的共享变量
+	updateSharedState();
+	object.notify();
+}
+
+```
+
+### 内部实现
+
+> Java虚拟机会给每个对象维护一个入口集EntrySet用于存储申请该对象内部锁的线程，和等待集WaitSet用于存储该对象上的等待线程；
+
+- 线程B获取锁
+
+- 保护条件不满足，<u>线程B暂停，并释放锁（原子操作）</u>，将当前线程的引用存入该方法所属对象的等待集中
+
+- 线程A申请锁
+
+- 线程A获取锁
+
+- 线程A更新保护条件
+
+- 保护条件满足，唤醒等待集中任意线程
+
+- 线程B被唤醒但仍留在等待集中，尝试获取锁，成功获取锁，等待集移除线程B，Object.wait()调用返回
+
+```java
+//wait伪代码实现
+pulic void wait(){
+    if(Thread.holdLock(this)){
+        throw new IllegalMonitorStateException();
+    }
+    if(waitSet.contains(Thread.currentThread())){
+        addToWaitSet(Thread.currentThread());
+    }
+    //原子操作
+    atomic {
+        releaseLock(this);
+        //暂停当前线程 等待唤醒
+        block(Thread.currentThread());
+    }
+    //被唤醒后
+    acquireLock(this);
+    removeFromWaitSet(Thread.currentThread());
+    return;
+}
+```
+
+**例子：监控服务/等待超时控制/Thread.join实现**
+
+### wait/notify问题
+
+#### 过早唤醒
+
+- 问题
+
+  因为一个对象只维护一个等待集，当在这个对象中的一个保护条件A被更新且成立时，调用notifyAll将会唤醒所有等待线程，这时使用其他保护条件B的等待线程甲也会被唤醒，发现自己保护条件不成立，只能继续等待。
+
+- 解决
+
+  juc包下的Condition类
+
+#### 信号丢失
+
+- 问题
+
+  保护条件成立判断和wait调用没有放在一个临界区内的循环里（todo）
+
+- 问题
+
+  notify唤醒不考虑任何保护条件，即notify没有成功唤醒当前等待条件上的等待线程，可能唤醒了其他保护条件的线程或一个都没唤醒，需换成notifyAll
+
+#### 欺骗性唤醒
+
+- 问题
+
+  等待线程没有在notify/notifyAll的情况下因操作系统导致被唤醒，导致过早唤醒，需要保护条件成立判断和wait调用放在一个临界区内的循环里
+
+#### 导致较多的上下文切换
+
+- 原因
+  - 锁的申请与释放
+  - 等待线程从暂停到被唤醒
+  - 与申请锁的Runnable线程争取相应的内部锁
+  - 过早唤醒的等待线程
+
+- 解决
+  - 保证程序正确性的前提下，notify代替notifyAll
+  - 通知线程执行完notify/notifyAll后尽早释放锁，导致被唤醒线程需要多次申请锁而被暂停（todo）
+
+### notify/notifyAll的选用
+
+|           | 优点   | 缺点     | 适用           |
+| --------- | ------ | -------- | -------------- |
+| notify    |        | 信号丢失 | 同质多等待线程 |
+| notifyAll | 正确性 | 过早唤醒 |                |
+
+### 具体案例
+
+Thread.join()是一个同步方法，其内部就是使用wait/notify来实现，等待目标线程执行结束后再继续执行；等待线程在目标线程未结束时调用wait来暂停自己，虚拟机会在目标线程的run方法运行结束后执行notifyAll。（同步的概念是什么todo）
