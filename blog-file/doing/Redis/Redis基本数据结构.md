@@ -94,7 +94,7 @@ Redis的有序列表zset，类似SortedSet和HashMap的结合体。它整体是�
   - 获取指定value的score：zscore keyZset value1
   - 根据score分区列出：zrangebyscore keyZset startScore endScore
   - 删除value1：zrem keyZset value1
-- 跳跃列表：实现内部score排序，保证随机的快速插入和删除；因为链表在二分查找时不支持，只有数组支持，所以不使用二分查找定位。
+- 跳跃列表：实现内部score排序，保证随机的快速插入和删除；因为链表在二分查找时不支持，只有数组支持，但数组不支持快速添加和删除，所以不使用二分查找定位。
 
 #### 特性
 
