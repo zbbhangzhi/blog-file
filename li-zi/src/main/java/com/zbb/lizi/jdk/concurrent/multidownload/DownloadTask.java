@@ -1,4 +1,4 @@
-package com.zbb.lizi.jdk.concurrent;
+package com.zbb.lizi.jdk.concurrent.multidownload;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -22,10 +22,13 @@ public class DownloadTask implements Runnable {
 
     private final URL fileUrl;
 
+    private final DownloadBuffer downloadBuffer;
+
     public DownloadTask(long lowerBound, long upperBound, URL fileUrl, FileStorage storage) {
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
         this.fileUrl = fileUrl;
+        this.downloadBuffer = new DownloadBuffer();
     }
 
     public void run() {
@@ -35,12 +38,14 @@ public class DownloadTask implements Runnable {
             ByteBuffer buf = ByteBuffer.allocate(1024);
             //将从网络读取的数据写入缓冲区
             while (channel.read(buf) > 0) {
-
+                downloadBuffer.write(buf);
+                buf.clear();
             }
         }catch (Exception e){
 
         }finally {
-
+            channel.close();
+            downloadBuffer.close();
         }
     }
 

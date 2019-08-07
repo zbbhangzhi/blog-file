@@ -1,4 +1,4 @@
-package com.zbb.lizi.jdk.concurrent;
+package com.zbb.lizi.jdk.concurrent.multidownload;
 
 import java.net.URL;
 
@@ -54,6 +54,8 @@ public class BigFileMultiDownload {
             DownloadTask dt = new DownloadTask(lowerBound, upperBound, fileUrl, storage);
             dispatchWork(dt, i);
         }
+
+        //报告进度
     }
 
     private void dispatchWork(DownloadTask dt, int threadIndex) {

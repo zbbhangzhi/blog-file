@@ -1,4 +1,4 @@
-## Redis基本数据结构
+## Redis基本数据结构（一）
 
 #### String字符串
 
@@ -148,40 +148,3 @@ Redis的hash结构类似于HashMap，即数组+链表，是一个**无序字典*
 - rehash：字典中键值对的增多或减少都会影响负载因子`load factor`（used/size），所以为了保持在合理范围，需要对字典进行扩容/缩容；但字典的空间重分配不会一次性做完，避免对服务器性能造成影响，会分批次做完。在rehash时才会为ht[1]分配空间，并设rehashidx为0，每做一次迁移，都会增1。
 
   rehash时保留新旧两个hash结构，查询时同时查询两个hash结构，在后续的定时任务和hash指令中，渐渐迁移老的hash内容到新的hash内容，这样可以减少全部元素hash时带来的服务堵塞。
-
-#### set集合
-
-Redis的set相当于HashSet，无序且唯一，相当于所有value为null的字典。set中最后一个元素被删除时，整个数据结构删除，内存回收。（hash是子key-子value形式，set是子key）
-
-- 操作
-  - 添加：sadd keySet value1 value2
-  - 查找是否存在：sismember keySet value1
-  - 获取keySet的长度：scard keySet
-  - 弹出：spop keySet
-
-#### zset有序列表
-
-Redis的有序列表zset，类似SortedSet和HashMap的结合体。它整体是个set，有set的特性，但不同于set，它可以为keySet的每个value设置一个score（任意数值），代表其排序权重，内部由 跳跃列表 数据结构实现。zset中最后一个元素被删除时，整个数据结构删除，内存回收
-
-- 操作
-  - 添加：zadd keyZset score value1
-  - 按score排序列出：zrange keySet 0 -1
-  - 按socre逆序列出：zrevrange keySet 0 -1
-  - 个数：zcard keyZset
-  - 获取指定value的score：zscore keyZset value1
-  - 根据score分区列出：zrangebyscore keyZset startScore endScore
-  - 删除value1：zrem keyZset value1
-- 跳跃列表：实现内部score排序，保证随机的快速插入和删除；因为链表在二分查找时不支持，只有数组支持，但数组不支持快速添加和删除，所以不使用二分查找定位。
-
-#### 特性
-
-##### 针对list/set/zset/hash
-
-- 新增元素时如果容器不存在则新建一个
-- 删除最后一个元素时，删除整个数据结构，回收内存空间
-
-##### 针对所有结构
-
-- 几秒后key值失效：setnx key seconds value 或 expire key seconds
-- 过期是整个对象结构过期而不是内部单个元素
-- 如果某字符串已设置过期时间，再次调用set方法修改这个元素的值时，过期时间会消失

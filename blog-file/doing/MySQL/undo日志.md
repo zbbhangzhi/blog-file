@@ -79,7 +79,7 @@ undo日志存储在类型为FIL_PAGE_UNDO_LOGO的页面中，而每条记录添�
      | 索引各列信息<pos,len,value> | 被索引的各列的位置/占用空间/值   |
 
 
-#### undo页面写入
+#### undo页面管理
 
 存储undo日志的页面类型为`FIL_PAGE_UNDO_LOG`，和其他类型的页相比，多了`Undo Page Header/Undo Log Segment Header/Undo Log Header`属性。
 
@@ -134,13 +134,57 @@ undo日志存储在类型为FIL_PAGE_UNDO_LOGO的页面中，而每条记录添�
 
 
 
-#### undo页面回滚
+#### undo页面链表管理
 
-InnoDB设计Rollback Segment Header页面来存储各个undo页面链表的frist undo page的页号（undo slot），这样就可以通过这个undo slot找到和它有关的normal undo page。
+InnoDB设计`Rollback Segment Header`页面来存储各个undo页面链表的`frist undo page`的页号（undo slot固定数量），以维护undo日志页链表，这样就可以通过这个undo slot找到和它有关的`normal undo page`；在还未向任何事务分配任何链表时，这些slot都处于FIL_FULL状态，被一个链表的first undo page申请后，就不是FIL_FULL状态了，下一个申请的链表判断后，跳到下一个slot中；如果已经没有slot可以分配，那就会报错，只能等待有事务提交让出位置。
 
-Rollback Segment Header页面对应着一个segment，称为Rollback Segment回滚段（只存储一个页面）
+`Rollback Segment Header`页面对应着一个segment，称为Rollback Segment回滚段（只存储一个页面）
 
-todo 回滚段
+Rollback Segment Header结构
+
+- TRX_RSEG_MAX_SIZE：它管理的undo日志页链表可存储的最大数量undo页面
+- TRX_RSEG_HISTORY_SIZE
+- TRX_RSEG_HISTORY
+- TRX_RSEG_FSEG_HEADER：这个回滚段的Segment Header结构
+- TRX_RSEG_UNDO_SLOTS：它管理的所有链表的`first undo page`的页号集合1024个slot（4*1024字节）
+
+
+
+todo  为事务分配Undo页面链表详细过程。
+
+精华都在后半段 涉及到系统表空间
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
