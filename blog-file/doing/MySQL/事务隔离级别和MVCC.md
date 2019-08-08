@@ -64,3 +64,42 @@ ReadView由事务生成时创建
 
 
 todo delete mask和MVCC的关系
+
+### InnoDB行级锁
+
+#### InnoDB锁的内存结构
+
+符合下列条件的记录集，就会将它们的锁放到一个锁结构中，减少一条记录一个锁占用的空间
+
+- 在同一个事务中进行加锁操作
+- 被加锁的记录在同一个页面中
+- 加锁的类型是一样的
+- 等待状态是一样的
+
+##### 锁结构
+
+- 锁所在的事务信息：指向生成这个锁结构的事务信息
+
+- 索引信息：指向记录加锁的记录属于哪个索引（聚簇索引）
+
+- 表锁/行锁信息：
+  - 表锁：表信息
+  - 行锁：space id，page number，n_bits使用比特位表示加锁的记录
+
+- type_mode
+  - lock_mode锁模式：LOCK_IS，LOCK_IX，LOCK_AUTO_INC，LOCK_S和LOCK_X
+  - lock_type锁类型：LOCK_TABLE表级锁，LOCK_REC行级锁
+  - rec_lock_type行锁具体类型：LOCK_ORDINARY，LOCK_GAP，LOCK_REC_NOT_GAP，LOCK_INSERT_INTENTION...
+  - LOCK_WAIT：第九个比特位为1时，is_waiting为true，为0就是false；表示当前事务是否处于等待状态
+
+##### 类型
+
+- LOCK_REC_NOT_GAP：分S锁和X锁
+
+- LOCK_GAP：在某条记录上加锁后，就不允许其他事务在这条记录前插入记录，以防止幻读，只有当y拥有整个锁的事务提交后才能插入；同时这个gap锁和其他锁不互斥。如果不允许在最后一条之后插入记录，可以在伪记录Supremum之前插入。
+
+- Next-Key Locks：锁住记录的同时，不允许在这条记录之前插入新记录
+
+- Insert Intention Locks：插入意向锁，表明因为某条记录被加上了gap/next-key锁，而不能在记录前的间隙插入新记录，只能阻塞等待时，所以InnoDB规定在事务等待时会在内存中生成一个锁结构，表示有个事务想在间隙插入记录，但在等待。
+
+- 隐式锁：在一个事务中记录insert插入时，是没有与锁做关联的，但因为事务id的存在，相当于加了一个锁；当别的事务希望对这个记录加上s/x锁时，会先比较这个事务id是否活跃，即存在隐式锁，是的话，就会帮这个事务生成一个锁结构isWaiting=false，再为自己生成一个锁结构isWaiting=true
