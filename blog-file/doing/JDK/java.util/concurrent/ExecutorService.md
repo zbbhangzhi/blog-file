@@ -1,12 +1,22 @@
-ExecutorService
+## ExecutorService
 
 ![1550714694740](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\1550714694740.png)
+
+### 定义
+
+ExecutorService接口继承Executor接口，Executor接口只能为客户端执行任务，而无法将任务的处理结果返回给客户端代码，在使用结束后需要主动释放内部维护的工作者线程和资源；而ExecutorService接口解决了上述问题，并同时提供接收Runnable接口和Callable接口提供的任务，并返回相应的Future实例；ThreadPoolExecutor是ExecutorService的默认实现类。
+
+Executors提供一些方法返回ExecutorService，方便我们不用手动创建ThreadPoolExecutor的情况下，就能使用线程池。
+
+ - static ExecutorService newCachedThreadPool();适用于执行时间短且提交频繁的任务，如果执行时间较长可能导致工作线程数量增长，上下文切换频繁；相当于内部维护一个SynchronousQueue为工作队列，这种队列的特点就是不会缓存任务，有工作现场执行就执行，没有就会直接返回false
+ - static ExecutorService newFixedThreadPool();该方法返回的线程池的核心线程池大小等于其最大线程池大小，所以它的工作线程永远不会超时；相当于内部维护了一个无界队列LLinkedBlockingQueue，这种队列的特点是，当工作线程达到核心线程大小时，数量就固定了不会增加也不会缩小，所以需要在不用时主动关闭
+ - static ExecutorService newSingleThreadExecutor();适合单/多生产者-单消费者模式；该线程池确保一次只有一个任务被执行，可以用作不想使用锁但又想保证线程安全的情况下使用。
 
 ##### 问题
 
 1. 使用线程池怎么体现减少开销：重复利用线程
 
-2. 怎么体现的重复利用线程：runWorker方法中，处理的任务可能时工作线程的任务 也可能时任务队列中的任务所以工作线程可以多处理任务
+2. 怎么体现的重复利用线程：runWorker方法中，处理的任务可能是工作线程的任务 也可能时任务队列中的任务所以工作线程可以多处理任务
 
 ##### todo
 
@@ -18,7 +28,7 @@ take：移除并返回头部元素，若队列为空，则阻塞
 COndition用处
 ```
 
-##### 示例
+### 示例
 
 ```java
 ExecutorService executorService = new ThreadPoolExecutor(SIZE_CORE_POOL, SIZE_MAX_POOL, TIME_KEEP_ALIVE, TimeUnit.SECONDS, new ArrayBlockingQueue<>(SIZE_WORK_QUEUE),
@@ -572,3 +582,14 @@ private Runnable getTask() {
 那么超出corePoolSize创建出的线程，一旦超过keepAliveTime指定的时间，还获取不到任务，比如keepAliveTime是60秒，那么假如超过60秒获取不到任务，他就会自动释放掉了，这个线程就销毁了。
 
 阻塞队列有界可以保证线程要处理的任务数是有限的，如果任务数无限且任务执行时间长很容易内存飙升，导致oom。
+
+
+### 异步任务的批量执行
+
+CompletionService接口可以提供批量提交异步任务并获取这些任务的处理结果，ExecutorCompletionService是其默认实现类，内部维护一个BlockingQueue来存储已经执行完毕的异步任务对应的Future实例
+
+- submit：提交任务
+- take：阻塞式获取执行结果（单个）
+- poll：非阻塞式获取执行结果（单个）
+
+
