@@ -8,7 +8,6 @@ import java.net.URL;
  * 1.下载
  * 2.定时报告
  * 3.取消下载
- * 需要线程隔离吗
  */
 public class BigFileMultiDownload {
 

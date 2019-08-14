@@ -8,5 +8,12 @@
     <artifactId>lizi</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>4.2.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>

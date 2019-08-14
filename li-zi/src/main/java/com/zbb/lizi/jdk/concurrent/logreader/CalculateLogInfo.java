@@ -1,4 +1,4 @@
-package com.zbb.lizi.jdk.concurrent;
+package com.zbb.lizi.jdk.concurrent.logreader;
 
 /**
  * 大日志多线程统计

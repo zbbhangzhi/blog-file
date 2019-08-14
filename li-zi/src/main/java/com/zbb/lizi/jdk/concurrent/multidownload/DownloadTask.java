@@ -28,7 +28,7 @@ public class DownloadTask implements Runnable {
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
         this.fileUrl = fileUrl;
-        this.downloadBuffer = new DownloadBuffer();
+        this.downloadBuffer = new DownloadBuffer(0, storage);
     }
 
     public void run() {

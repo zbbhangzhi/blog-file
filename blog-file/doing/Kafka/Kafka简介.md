@@ -1,0 +1,16 @@
+Kafka简介
+
+Kafka是一个分布式流式处理平台，它提供三种角色：消息系统，存储系统，流式处理平台
+
+Kafka架构体系为实现消息模块包括了若干producer，broker和consumer，还有zookeeper集群来负责元数据的管理和控制器选举等操作。
+
+Kafka的消息由主题topic来归类，每个topic都有若干个partition分区，分区的添加实现主题IO性能的水平扩展，分区本质是可追加的日志文件，消息是顺序写入分区的，每个分区又有若干副本，分为leader副本和follower副本；leader副本负责处理读写请求，而follower副本只负责数据同步，当然会存在一定的滞后性，只能达到最终一致。
+
+为了保证消息可靠性，Kafka将所有分区副本统称为AR，所有与leader副本保持一定程度同步的副本称为ISR，而剩下严重滞后的副本称为OSR（AR=ISR+OSR）。leader副本会维护和跟踪所有follower副本的滞后状态，如果ISR中有严重滞后的就会被踢出，OSR中赶上了leader副本的就会被移到ISR。HW（high watermark）是分区中消息写入的最高offset，和LEO（log end offset）标识当前日志文件中下一条待写入的消息的offset，而ISR中最小的LEO就是分区的HW。
+
+ISR保证leader副本宕机后能最可靠的恢复数据，而且副本的不同程度同步（异步同步）可以降低同步带来的性能问题。
+
+Kafka消息端consumer采用pull模式拉取消息，并保存消费的具体位置，保证consumer宕机后能重新拉取，防止消息丢失。但是consumer只能拉取到分区HW之前的消息；
+
+
+
