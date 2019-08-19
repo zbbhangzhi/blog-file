@@ -49,11 +49,64 @@ Kafka消息端consumer采用pull模式拉取消息，并保存消费的具体位
 
 #### 消费者
 
+Kafka是基于轮询的方式不断**拉取**poll其所订阅的主题/分区上的一组消息，如果没有消息可拉取，就返回一个空集合。如果想要控制消费速度，可以调用pause()暂停消费，resume()恢复消费。最后显式的关闭close()占用的资源
 
+订阅方式
 
+一个消费者只能使用一种订阅方式，可同时订阅一个或多个主题。subscribe订阅方式具有**消费者自动再均衡**的功能，在多个消费者（增加/减少）情况下根据**分区分配策略**来自动分配消费者和分区之间的关系，以实现负载均衡和故障自动转移。
 
+- AUTO_PATTERN：正则表达式订阅subscribe(Pattern)
 
+- AUTO_TOPICS：集合订阅subscribe(Collection)
 
+- USER_ASSIGNED：指定分区订阅assign(Collection)
+
+消费组与消费者
+
+消费组的存在提高了整体的消费能力，但为了合理扩展消费能力，需要将消费组内消费者数量设置的和其所订阅的主题下的分区数量接近。消费者与订阅主题之间的分区分配策略 todo
+
+消息投递模式
+
+- 点对点模式：基于队列实现生产和消费（只有一个消费组）
+- 发布订阅模式：在消息的一对多广播时使用，主题topic相当于中介，使生产者和消费者无需接触就可以保证消息的传递（有多个消费组）
+
+消息模型
+
+ConsumerRecord为单个消息格式，ConsumerRecords为多个消息组装成的格式，用于消息接收
+
+```java
+class ConsumerRecord<K, V>{
+    String topic;
+    int partition;
+    long offset;					//消息在所属分区的偏移量
+    long timestamp;
+    TimeStampType timeStampType;
+    int serializedKeySize;
+    int serializedValueSize;
+    Headers headers;
+    K key;							//消息键
+    V value;						//消息值
+    Long checkSum;					//CRC32的校验值
+}
+class ConsumerRecords{
+    
+}
+```
+
+消费过程
+
+- 消费者订阅`subscribe`主题topic
+
+- 消费者从topic上拉取`poll()`消息
+  - 消费位移记录：消费位移持久化于主题`__consumer_offsets`，存储当前消费位移+1，下次消费开始的位置；消费位移提交方式不恰当可能会产生消费丢失或重复消费的问题；所以Kafka中消费位移默认提交的方式是定期自动提交每个分区中最大的消费位移，这个动作在poll方法中，每次拉取消息前提交。或者我们手动调用提交：同步`commitSync`（可以按照分区粒度同步提交），异步提交`commitAsync`
+  - 消费者协调器
+- 消息`ConsumerRecords`投递给消费组中的一个消费者
+
+- 收到消息的消费者转发给组内的其他消费者
+
+回溯消费
+
+seek()方法提供我们P74
 
 
 
