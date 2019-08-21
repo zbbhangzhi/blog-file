@@ -1,6 +1,7 @@
 package com.zbb.lizi.jdk.concurrent.logreader;
 
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * @author by tiancha
@@ -10,6 +11,11 @@ public class MultiThreadStatTask extends AbstractThreadStatTask{
 
     public MultiThreadStatTask(int inputBufferSize, int batchSize, InputStream in) {
         super(inputBufferSize, batchSize, in);
+    }
+
+    @Override
+    protected void report(Map<String, Object> result) {
+
     }
 
     @Override

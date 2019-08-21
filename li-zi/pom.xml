@@ -11,8 +11,8 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>4.2.1-SNAPSHOT</version>
+            <artifactId>curator-framework</artifactId>
+            <version>4.2.0</version>
         </dependency>
     </dependencies>
 

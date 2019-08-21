@@ -44,8 +44,8 @@ public class DownloadTask implements Runnable {
         }catch (Exception e){
 
         }finally {
-            channel.close();
-            downloadBuffer.close();
+//            channel.close();
+//            downloadBuffer.close();
         }
     }
 

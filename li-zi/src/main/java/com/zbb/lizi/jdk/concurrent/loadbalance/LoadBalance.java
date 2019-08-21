@@ -6,4 +6,9 @@ package com.zbb.lizi.jdk.concurrent.loadbalance;
  * @Date 2019/8/5 18:43
  */
 public class LoadBalance {
+//    private final Candidate candidate;
+
+    public void dispatcher(String request){
+
+    }
 }
