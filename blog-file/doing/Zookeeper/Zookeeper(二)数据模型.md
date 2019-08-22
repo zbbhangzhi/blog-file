@@ -8,7 +8,7 @@ Zookeeper数据模型ZNode
 
   ​	路径作为叶子节点名称，数据作为叶子节点内的数据；
 
-- Znode可以存储什么类型的数据
+- Znode可以存储什么类型的数据：序列化后的字符串
 
 #### 特性
 
@@ -16,7 +16,7 @@ Zookeeper数据模型ZNode
 
 - 数据访问：对存储在命名空间的节点以原子方式读取和写入，每个节点都有一个访问控制列表ACL
 
-  ​	ACL(sechema​ ​:id :​permision)：
+  ​	ACL(sechema​ :id :permision)：
 
   ​		权限模式schema(IP,Digest,World,Super)，
 
@@ -26,23 +26,27 @@ Zookeeper数据模型ZNode
 
 - 节点类型：
 
-  ​	持久节点PERSISTENT，
+  ​	持久节点PERSISTENT：需要主动删除
 
-  ​	持久顺序节点PERSISTENT_SEQUENTIAL：按照创建先后顺序添加数字后缀
+  ​	持久顺序节点PERSISTENT_SEQUENTIAL：按照创建先后顺序添加数字后缀，父节点为第一级子节点维护一份顺序
 
-  ​	临时节点EPEMERAL：其生命周期与客户端会话绑定，客户端失效，节点被清除，且不能作为父节点
+  ​	临时节点EPEMERAL：其生命周期与客户端会话绑定，客户端会话失效，而不是TCP连接断开，节点被清除，且不能作为父节点
 
   ​	临时顺序节点EPEMERAL_SEQUENTIAL
 
-- 版本：保证分布式数据原子性操作
+- 状态信息Stat
 
-  ​	每个节点都维护三种版本：
+  ​	czxid节点被创建时的事务id，mzxid节点最后一次被更新时的事务id，ctime创建时间，mtime最后一次修改时间，pzxid最后一次子节点列表（不是子节点内容）被修改时的事务id
+
+  ​	每个节点都维护三种版本：保证分布式数据原子性操作
 
   ​		version数据内容版本号
 
   ​		cversion子节点版本号
-
+  
   ​		aversionACL变更版本号
+  
+  ​	版本相当于数据库中乐观锁机制中的写入校验，乐观锁实现过程：数据读取，写入校验（更新提交前检查数据是否被其他事务更新，如果被更新就回滚，没有就提交），数据写入；适合数据并发竞争不大，事务冲突较少的应用场景，在zookeeper服务器的PrepRequestProcessor处理类（责任链模式）中处理每个数据更新setDataRequest
 
 #### 描述
 
