@@ -1,0 +1,7 @@
+sentinel模式下的redis服务器，用于对redis服务器的监视
+sentinel模式下，redis服务器因为没有载入redisCommandTable命令表，所以不能执行如set/get/eval等指令
+
+客户端启动时先连接sentinel，从它那获取主服务的信息，再去连接主服务进行数据交互；
+
+故障迁移
+主节点变为从节点，sentinel从从主节点中选出一个主节点，其他从节点开始向主节点进行复制。恢复的旧主节点也开始从新主节点复制
