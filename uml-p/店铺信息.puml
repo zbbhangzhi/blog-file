@@ -1,0 +1,14 @@
+@startuml
+client -> mis: get_mall_shop_info
+mis -> shopCenter: 获取店铺信息
+shopCenter --> mis:
+
+mis -> bps: 获取掌柜信息
+bps --> mis:
+
+mis -> chain: 查看数据授权
+chain --> mis:
+
+mis -> mis: 查询合同、铺位
+
+@enduml

@@ -1,0 +1,10 @@
+@startuml
+client -> mis: get_mall_shop_list
+mis -> shopCenter: 获取所有店铺
+shopCenter --> mis:
+
+mis -> mis: 过滤收银类型
+mis -> mis: 过滤店铺业态
+mis -> mis: 过滤授权状态
+
+@enduml
