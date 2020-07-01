@@ -1,0 +1,8 @@
+window.globalConfig = {
+  // BASE_API: 'http://47.97.253.230:10006/',
+  // FILE_API: 'http://47.97.253.230:10001/',
+  BASE_API: 'http://epcard.ngarihealth.com:10000/',
+  FILE_API: 'http://epcard.ngarihealth.com:9999/',
+  GLOBALLIST: [],
+  useAes: false
+}

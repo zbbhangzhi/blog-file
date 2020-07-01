@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/blog-file/blog-file.iml" filepath="$PROJECT_DIR$/blog-file/blog-file.iml" />
+      <module fileurl="file://$PROJECT_DIR$/li-zi/lizi.iml" filepath="$PROJECT_DIR$/li-zi/lizi.iml" />
+    </modules>
+  </component>
+</project>
