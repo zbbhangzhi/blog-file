@@ -1,4 +1,4 @@
-package com.zbb.lizi.algorithm;
+package com.zbb.lizi.algorithm.sort;
 
 import java.util.Arrays;
 

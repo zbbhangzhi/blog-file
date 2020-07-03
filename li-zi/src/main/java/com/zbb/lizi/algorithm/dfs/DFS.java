@@ -1,8 +1,9 @@
-package com.zbb.lizi.algorithm;
+package com.zbb.lizi.algorithm.dfs;
 
 import java.util.Stack;
 
 /**
+ * 深度优先算法 查找最小路径
  * @Author tiancha
  * @create 2019/10/10 19:57
  */
