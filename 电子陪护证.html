@@ -86,7 +86,9 @@
     <script type="text/javascript">
         window.onload=function(){
             //每1秒刷新时间
-            setInterval("NowTime()",1000);
+document.getElementById('timeA').innerHTML=new Date();
+       
+           // setInterval("NowTime()",1000);
         }
         function NowTime() {
             var d = new Date();
